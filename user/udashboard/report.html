@@ -367,6 +367,7 @@ const _supabase = createClient('https://uiciowpyxfawjvaddivu.supabase.co', 'eyJh
 
                 imgUrl = uploadData.path;
             }
+            
 
             // Insert feedback data into the userfeedback table
             const { data: feedbackData, error: feedbackError } = await _supabase
@@ -375,7 +376,7 @@ const _supabase = createClient('https://uiciowpyxfawjvaddivu.supabase.co', 'eyJh
                     username: session_username,  
                     email: session_email ,
                     feedback: report,
-                    img_fb: imgUrl ? `https://uiciowpyxfawjvaddivu.supabase.co/storage/v1/object/public/${imgUrl}` : null,
+                    img_fb: imgUrl ? `https://uiciowpyxfawjvaddivu.supabase.co/storage/v1/object/public/images/${imgUrl}` : null,
                     cp_name: collectionPoint
                 });
 
