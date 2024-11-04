@@ -241,117 +241,136 @@
 		</div><!--//app-sidepanel-->
 	</header><!--//app-header-->
 
-    <div class="app-wrapper">
-        <div class="app-content pt-3 p-md-3 p-lg-4">
-            <div class="container-xl">
-                <div class="row g-3 mb-4 align-items-center justify-content-between">
-                    <div class="col-auto">
-                        <h1 class="app-page-title mb-0">Realtime Status</h1>
-                    </div>
-                </div>
-
-                <!-- Image and Dropdown with Button -->
-                <div id="image-container" style="background-image: url('assets/images/imageplaceholder.jpg');">
-                    <div class="image-overlay">
-                        <div class="input-group">
-                            <select id="collectionPoint" class="form-select">
-                                <option value="CP1">Collection Point 1</option>
-                                <option value="CP2">Collection Point 2</option>
-                            </select>
-                            <button id="changeImageBtn" class="btn btn-primary">Check</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="status-data" id="status-data">
-                <h5 id="location"></h5>
-                <p id="status"></p>
-                <p id="timestamp"></p>
-            </div>
+	<div class="app-wrapper">
+		<div class="app-content pt-3 p-md-3 p-lg-4">
+			<div class="container-xl">
+				<div class="row g-3 mb-4 align-items-center justify-content-between">
+					<div class="col-auto">
+						<h1 class="app-page-title mb-0">Realtime Status</h1>
+					</div>
+				</div>
+	
+				<!-- Live Image and Dropdown with Button -->
+				<div id="image-container" style="background-image: url('assets/images/loading.gif');">
+					<div class="image-overlay">
+						<div class="input-group">
+							<select id="collectionPoint" class="form-select">
+								<!-- Options will be dynamically populated -->
+							</select>
+							<button id="changeImageBtn" class="btn btn-primary">Check</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="status-data" id="status-data">
+				<h5 id="location"></h5>
+				<p id="status"></p>
+				<p id="timestamp"></p>
+			</div>
 			<script>
 				// Initialize Supabase client
 				const { createClient } = supabase;
-                const _supabase = createClient('https://uiciowpyxfawjvaddivu.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpY2lvd3B5eGZhd2p2YWRkaXZ1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcyNzE0MDQyMCwiZXhwIjoyMDQyNzE2NDIwfQ.kR8PsVyqtW0QTJoFjFq6aiXU-iq0y3alXfJQIRMVgBw');
+				const _supabase = createClient('https://uiciowpyxfawjvaddivu.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpY2lvd3B5eGZhd2p2YWRkaXZ1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcyNzE0MDQyMCwiZXhwIjoyMDQyNzE2NDIwfQ.kR8PsVyqtW0QTJoFjFq6aiXU-iq0y3alXfJQIRMVgBw');
 				let subscription;
-
-async function populateDropdown() {
-	const { data: collectionPoints, error } = await _supabase
-		.from('collection_point')
-		.select('cp_name, cp_address')
-		.eq('cp_add_state', 'yes') 
-		.order('cp_name', {ascending: true});
-
-	if (error) {
-		console.error('Error fetching collection points:', error);
-		return;
-	}
-
-	const dropdown = document.getElementById('collectionPoint');
-	dropdown.innerHTML = ''; 
-
-	collectionPoints.forEach(point => {
-		const option = document.createElement('option');
-		option.value = point.cp_name;
-		option.textContent = point.cp_name + " ( " + point.cp_address +" )";
-		dropdown.appendChild(option);
-	});
-
-	if (collectionPoints.length > 0) {
-		subscribeToUpdates(collectionPoints[0].cp_name);
-	}
-}
-
-function subscribeToUpdates(cpId) {
-	if (subscription) {
-		_supabase.removeChannel(subscription); 
-	}
-
-	subscription = _supabase
-		.channel('collection-point-updates')
-		.on(
-			'postgres_changes',
-			{ event: '*', schema: 'public', table: 'images', filter: `cp_id=eq.${cpId}` },
-			(payload) => {
-				const updatedImageUrl = payload.new.image_url;
-				console.log('New image received:', updatedImageUrl);
-				updateImage(updatedImageUrl);
-			}
-		)
-		.subscribe();
-}
-
-function updateImage(imageUrl) {
-	const imageContainer = document.getElementById('image-container');
-	imageContainer.style.backgroundImage = `url('${imageUrl}')`;
-}
-
-async function uploadRequest() {
-	const imageContainer = document.getElementById('image-container');
-	imageContainer.style.backgroundImage = `url('assets/images/load.gif')`;
-	const collectionPointId = document.getElementById('collectionPoint').value;
-
-	const { error } = await _supabase
-		.from('controls')
-		.insert([{ who: 'live request ' + collectionPointId }]);
-
-	if (error) {
-		console.error('Error inserting request:', error);
-	} else {
-		console.log('Request uploaded successfully');
-	}
-}
-
-document.getElementById('collectionPoint').addEventListener('change', function () {
-	const selectedCP = this.value;
-	subscribeToUpdates(selectedCP);
-});
-
-document.getElementById('changeImageBtn').addEventListener('click', uploadRequest);
-
-document.addEventListener('DOMContentLoaded', populateDropdown);
+	
+				async function populateDropdown() {
+					const { data: collectionPoints, error } = await _supabase
+						.from('collection_point')
+						.select('cp_name, cp_address')
+						.eq('cp_add_state', 'yes')
+						.order('cp_name', { ascending: true });
+	
+					if (error) {
+						console.error('Error fetching collection points:', error);
+						return;
+					}
+	
+					const dropdown = document.getElementById('collectionPoint');
+					dropdown.innerHTML = '';
+	
+					collectionPoints.forEach(point => {
+						const option = document.createElement('option');
+						option.value = point.cp_name;
+						option.textContent = `${point.cp_name} (${point.cp_address})`;
+						dropdown.appendChild(option);
+					});
+	
+					if (collectionPoints.length > 0) {
+						// Load the latest image for the first collection point
+						loadLatestImage(collectionPoints[0].cp_name);
+					}
+				}
+	
+				async function loadLatestImage(cpId) {
+					const { data: latestImage, error } = await _supabase
+						.from('images')
+						.select('image_url')
+						.eq('cp_id', cpId)
+						.order('created_at', { ascending: false })
+						.limit(1)
+						.single();
+	
+					if (error || !latestImage) {
+						console.error('Error fetching latest image:', error);
+						return;
+					}
+	
+					updateImage(latestImage.image_url);
+					subscribeToUpdates(cpId);
+				}
+	
+				function subscribeToUpdates(cpId) {
+					if (subscription) {
+						_supabase.removeChannel(subscription);
+					}
+	
+					subscription = _supabase
+						.channel('collection-point-updates')
+						.on(
+							'postgres_changes',
+							{ event: '*', schema: 'public', table: 'images', filter: `cp_id=eq.${cpId}` },
+							(payload) => {
+								const updatedImageUrl = payload.new.image_url;
+								console.log('New image received:', updatedImageUrl);
+								updateImage(updatedImageUrl);
+							}
+						)
+						.subscribe();
+				}
+	
+				function updateImage(imageUrl) {
+					const imageContainer = document.getElementById('image-container');
+					imageContainer.style.backgroundImage = `url('${imageUrl}')`;
+				}
+	
+				async function uploadRequest() {
+					const imageContainer = document.getElementById('image-container');
+					imageContainer.style.backgroundImage = `url('assets/images/load.gif')`;
+					const collectionPointId = document.getElementById('collectionPoint').value;
+	
+					const { error } = await _supabase
+						.from('controls')
+						.insert([{ who: 'live request ' + collectionPointId }]);
+	
+					if (error) {
+						console.error('Error inserting request:', error);
+					} else {
+						console.log('Request uploaded successfully');
+					}
+				}
+	
+				document.getElementById('collectionPoint').addEventListener('change', function () {
+					const selectedCP = this.value;
+					loadLatestImage(selectedCP);
+				});
+	
+				document.getElementById('changeImageBtn').addEventListener('click', uploadRequest);
+	
+				document.addEventListener('DOMContentLoaded', populateDropdown);
 			</script>
-        </div>
-    </div>
+		</div>
+	</div>
+	
 	<script>
 
 		document.getElementById('logout-btn').addEventListener('click', async function () {
